@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: course-matcher
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python seed.py && gunicorn app:app
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_PATH
+        value: course_reco.db
+      - key: AZURE_OPENAI_ENDPOINT
+        value: ""
+      - key: AZURE_OPENAI_API_KEY
+        value: ""
+      - key: AZURE_OPENAI_DEPLOYMENT
+        value: ""
+      - key: AZURE_OPENAI_API_VERSION
+        value: "2024-06-01"
