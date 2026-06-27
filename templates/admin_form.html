@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if program else 'Add' }} program — Course Advisor{% endblock %}
+
+{% block content %}
+<div class="admin-wrap">
+  <div class="admin-header">
+    <h1 class="display-heading">{{ 'Edit program' if program else 'Add program' }}</h1>
+    <a href="{{ url_for('admin_list') }}" class="btn btn--ghost">Back to catalogue</a>
+  </div>
+
+  <form method="post" action="{{ action }}" class="admin-form" novalidate>
+
+    <fieldset class="form-section">
+      <legend class="section-label">Identity</legend>
+      <div class="field-row">
+        <div class="field field--grow">
+          <label for="university">University / provider</label>
+          <input
+            type="text" id="university" name="university"
+            value="{{ program.university if program else '' }}"
+            required
+          />
+        </div>
+        <div class="field field--grow">
+          <label for="program_name">Program name</label>
+          <input
+            type="text" id="program_name" name="program_name"
+            value="{{ program.program_name if program else '' }}"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="level">Level</label>
+          <select id="level" name="level" required>
+            <option value="">— select —</option>
+            {% for v in ['bachelors','masters','certification'] %}
+            <option value="{{ v }}" {{ 'selected' if program and program.level == v else '' }}>
+              {{ v|capitalize }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field field--grow">
+          <label for="specialization">Specialization / field</label>
+          <input
+            type="text" id="specialization" name="specialization"
+            value="{{ program.specialization if program else '' }}"
+            placeholder="e.g. Finance"
+            required
+          />
+        </div>
+        <div class="field">
+          <label for="mode">Mode</label>
+          <select id="mode" name="mode" required>
+            {% for v in ['online','offline','hybrid'] %}
+            <option value="{{ v }}" {{ 'selected' if program and program.mode == v else '' }}>
+              {{ v|capitalize }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend class="section-label">Location &amp; financials</legend>
+      <div class="field-row">
+        <div class="field">
+          <label for="fee_inr">Total fee (₹)</label>
+          <input
+            type="number" id="fee_inr" name="fee_inr" min="0" step="100"
+            value="{{ program.fee_inr if program else '' }}"
+            required
+          />
+        </div>
+        <div class="field">
+          <label for="city">City <span class="optional">(blank for pure-online)</span></label>
+          <input
+            type="text" id="city" name="city"
+            value="{{ program.city if program and program.city else '' }}"
+          />
+        </div>
+        <div class="field">
+          <label for="state">State</label>
+          <input
+            type="text" id="state" name="state"
+            value="{{ program.state if program and program.state else '' }}"
+          />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="min_eligibility_pct">Min eligibility % (0–100)</label>
+          <input
+            type="number" id="min_eligibility_pct" name="min_eligibility_pct"
+            min="0" max="100" step="0.1"
+            value="{{ program.min_eligibility_pct if program else '0' }}"
+            required
+          />
+        </div>
+        <div class="field">
+          <label for="placement_pct">Placement % (0–100)</label>
+          <input
+            type="number" id="placement_pct" name="placement_pct"
+            min="0" max="100" step="0.1"
+            value="{{ program.placement_pct if program and program.placement_pct is not none else '' }}"
+          />
+        </div>
+        <div class="field field--grow">
+          <label for="apply_url">Apply URL</label>
+          <input
+            type="url" id="apply_url" name="apply_url"
+            value="{{ program.apply_url if program else '' }}"
+            placeholder="https://..."
+          />
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend class="section-label">Quality scores (0–10 each)</legend>
+      <p class="field-hint">These drive the ranking. Spread scores meaningfully — identical scores produce identical ranks.</p>
+      <div class="score-grid">
+        {% set score_fields = [
+          ('brand_score',         'Brand strength',      'University brand / recognition'),
+          ('placements_score',    'Placements',          'Quality of placement support and outcomes'),
+          ('course_depth_score',  'Course depth',        'Depth of curriculum and electives'),
+          ('faculty_score',       'Faculty',             'Teaching staff quality and industry exposure'),
+          ('support_score',       'Student support',     'LMS, mentoring, student services'),
+          ('infra_score',         'Infrastructure',      'Campus / platform quality'),
+          ('accreditation_score', 'Accreditation',       'UGC, NAAC, AICTE and other approvals'),
+          ('qs_score',            'QS strength',         'QS ranking or equivalent international signal'),
+        ] %}
+        {% for field_name, label, hint in score_fields %}
+        <div class="field score-field">
+          <label for="{{ field_name }}">{{ label }}</label>
+          <input
+            type="number" id="{{ field_name }}" name="{{ field_name }}"
+            min="0" max="10" step="0.5"
+            value="{{ program[field_name] if program and program[field_name] is not none else '5' }}"
+            required
+          />
+          <span class="field-hint">{{ hint }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="form-section">
+      <legend class="section-label">Display fields</legend>
+      <div class="field">
+        <label for="approvals_text">Approvals / accreditations (shown on card)</label>
+        <input
+          type="text" id="approvals_text" name="approvals_text"
+          value="{{ program.approvals_text if program else '' }}"
+          placeholder="e.g. UGC-entitled, NAAC A+, AICTE-approved"
+        />
+      </div>
+      <div class="field">
+        <label for="notes">Notes (internal only)</label>
+        <textarea id="notes" name="notes" rows="2">{{ program.notes if program else '' }}</textarea>
+      </div>
+    </fieldset>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn--primary">
+        {{ 'Save changes' if program else 'Add program' }}
+      </button>
+      <a href="{{ url_for('admin_list') }}" class="btn btn--ghost">Cancel</a>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

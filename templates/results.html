@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Your program matches — Course Advisor{% endblock %}
+
+{% block content %}
+<div class="results-wrap">
+
+  <!-- Header row -->
+  <div class="results-header">
+    <div>
+      <h1 class="display-heading">Your matches</h1>
+      <p class="results-meta">
+        {{ ranked|length }} program{{ 's' if ranked|length != 1 else '' }} matched
+        &nbsp;·&nbsp;
+        {{ eliminated_count }} filtered out of {{ total_count }} in catalogue
+        &nbsp;·&nbsp;
+        <a href="{{ url_for('intake') }}" class="text-link">Adjust search</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- LLM / fallback narrative -->
+  {% if narrative %}
+  <div class="narrative-block">
+    <p class="narrative-text">{{ narrative }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Empty state -->
+  {% if not ranked %}
+  <div class="empty-state">
+    <p class="empty-heading">No programs match yet.</p>
+    <p class="empty-body">
+      Try a higher budget, a lower eligibility threshold, or broaden your
+      location / mode preferences.
+    </p>
+    <a href="{{ url_for('intake') }}" class="btn btn--primary">Adjust search</a>
+  </div>
+  {% endif %}
+
+  <!-- Ranked cards -->
+  {% for prog in ranked %}
+  {% set rank = loop.index %}
+  <article class="program-card{% if rank == 1 %} program-card--rank1{% endif %}">
+
+    <!-- Card header -->
+    <div class="card-header">
+      <div class="card-rank-badge">
+        {% if rank == 1 %}
+        <span class="badge badge--gold">Top pick</span>
+        {% else %}
+        <span class="badge badge--rank">#{{ rank }}</span>
+        {% endif %}
+      </div>
+      <div class="card-title-block">
+        <h2 class="card-university">{{ prog.university }}</h2>
+        <p class="card-program">{{ prog.program_name }}</p>
+      </div>
+      <div class="card-score-block">
+        <span class="score-value mono">{{ prog.score_pct }}%</span>
+        <span class="score-label">match score</span>
+      </div>
+    </div>
+
+    <!-- Score breakdown bar (signature element) -->
+    <div class="score-bar-wrap">
+      <div class="score-bar" role="img" aria-label="Score breakdown for {{ prog.university }}">
+        {% for param_key, label in param_labels.items() %}
+        {% set contrib = prog.contributions.get(param_key, 0) %}
+        {% if contrib > 0 %}
+        <div
+          class="score-segment segment--{{ param_key }}"
+          style="width: {{ contrib }}%"
+          data-param="{{ label }}"
+          data-value="{{ '%.1f'|format(contrib) }}%"
+          tabindex="0"
+          aria-label="{{ label }}: {{ '%.1f'|format(contrib) }}%"
+        ></div>
+        {% endif %}
+        {% endfor %}
+      </div>
+      <div class="score-bar-legend" aria-hidden="true">
+        {% for param_key, label in param_labels.items() %}
+        {% set contrib = prog.contributions.get(param_key, 0) %}
+        {% if contrib > 0 %}
+        <span class="legend-item">
+          <span class="legend-swatch swatch--{{ param_key }}"></span>
+          <span class="legend-name">{{ label }}</span>
+          <span class="legend-val mono">{{ '%.1f'|format(contrib) }}</span>
+        </span>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Card meta row -->
+    <div class="card-meta">
+      <span class="meta-item">
+        <span class="meta-label">Fee</span>
+        <span class="meta-value mono">₹{{ '{:,}'.format(prog.fee_inr) }}</span>
+      </span>
+      {% if prog.placement_pct %}
+      <span class="meta-item">
+        <span class="meta-label">Placement</span>
+        <span class="meta-value mono">{{ prog.placement_pct }}%</span>
+      </span>
+      {% endif %}
+      <span class="meta-item">
+        <span class="meta-label">Mode</span>
+        <span class="meta-value">{{ prog.mode|capitalize }}</span>
+      </span>
+      {% if prog.city %}
+      <span class="meta-item">
+        <span class="meta-label">Location</span>
+        <span class="meta-value">{{ prog.city }}{% if prog.state %}, {{ prog.state }}{% endif %}</span>
+      </span>
+      {% endif %}
+      {% if prog.approvals_text %}
+      <span class="meta-item meta-item--approvals">
+        <span class="meta-label">Approvals</span>
+        <span class="meta-value approvals-text">{{ prog.approvals_text }}</span>
+      </span>
+      {% endif %}
+    </div>
+
+    <!-- Card actions -->
+    <div class="card-actions">
+      {% if prog.apply_url %}
+      <a
+        href="{{ prog.apply_url }}"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn--primary"
+      >Apply</a>
+      {% endif %}
+    </div>
+
+  </article>
+  {% endfor %}
+
+  <!-- Weight vector (transparency footer) -->
+  {% if ranked %}
+  <div class="weights-footer">
+    <p class="weights-label">Ranking weights used</p>
+    <div class="weights-grid">
+      {% for param_key, label in param_labels.items() %}
+      <span class="weight-item">
+        <span class="weight-name">{{ label }}</span>
+        <span class="weight-val mono">{{ '%.1f'|format(weights[param_key] * 100) }}%</span>
+      </span>
+      {% endfor %}
+    </div>
+    {% if reasons_list %}
+    <p class="weights-note">
+      Weights adjusted for:
+      {% for r in reasons_list %}<em>{{ r }}</em>{% if not loop.last %}, {% endif %}{% endfor %}
+    </p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* Score bar hover tooltip — minimal JS as specified */
+(function () {
+  var tooltip = document.createElement('div');
+  tooltip.className = 'score-tooltip';
+  tooltip.setAttribute('role', 'tooltip');
+  document.body.appendChild(tooltip);
+
+  function show(seg, e) {
+    var param = seg.dataset.param;
+    var val = seg.dataset.value;
+    tooltip.textContent = param + ': ' + val;
+    tooltip.style.display = 'block';
+    position(e);
+  }
+
+  function position(e) {
+    var x = e.clientX + window.scrollX + 12;
+    var y = e.clientY + window.scrollY - 32;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+  }
+
+  function hide() {
+    tooltip.style.display = 'none';
+  }
+
+  document.querySelectorAll('.score-segment').forEach(function (seg) {
+    seg.addEventListener('mouseenter', function (e) { show(seg, e); });
+    seg.addEventListener('mousemove', position);
+    seg.addEventListener('mouseleave', hide);
+    seg.addEventListener('focus', function (e) {
+      show(seg, { clientX: seg.getBoundingClientRect().left, clientY: seg.getBoundingClientRect().top });
+    });
+    seg.addEventListener('blur', hide);
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Programme catalogue — Course Advisor{% endblock %}
+
+{% block content %}
+<div class="admin-wrap">
+  <div class="admin-header">
+    <h1 class="display-heading">Programme catalogue</h1>
+    <a href="{{ url_for('admin_new') }}" class="btn btn--primary">Add program</a>
+  </div>
+
+  {% if programs %}
+  <div class="table-scroll">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>University</th>
+          <th>Program</th>
+          <th>Level</th>
+          <th>Field</th>
+          <th>Mode</th>
+          <th class="mono">Fee (₹)</th>
+          <th class="mono">Min %</th>
+          <th class="mono">Placement %</th>
+          <th>Approvals</th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in programs %}
+        <tr>
+          <td><strong>{{ p.university }}</strong></td>
+          <td>{{ p.program_name }}</td>
+          <td><span class="badge badge--level">{{ p.level }}</span></td>
+          <td>{{ p.specialization }}</td>
+          <td>{{ p.mode }}</td>
+          <td class="mono">{{ '{:,}'.format(p.fee_inr) }}</td>
+          <td class="mono">{{ p.min_eligibility_pct }}</td>
+          <td class="mono">{{ p.placement_pct if p.placement_pct is not none else '—' }}</td>
+          <td class="approvals-cell">{{ p.approvals_text or '—' }}</td>
+          <td class="actions-cell">
+            <a href="{{ url_for('admin_edit', prog_id=p.id) }}" class="btn btn--small">Edit</a>
+            <form
+              method="post"
+              action="{{ url_for('admin_delete', prog_id=p.id) }}"
+              style="display:inline"
+              onsubmit="return confirm('Delete {{ p.university | replace("'","\'") }} — {{ p.program_name | replace("'","\'") }}?')"
+            >
+              <button type="submit" class="btn btn--small btn--danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="admin-count">{{ programs|length }} program{{ 's' if programs|length != 1 else '' }} in catalogue</p>
+  {% else %}
+  <div class="empty-state">
+    <p class="empty-heading">No programs yet.</p>
+    <p class="empty-body">Add programs manually or run <code>python seed.py</code> to load the sample catalogue.</p>
+    <a href="{{ url_for('admin_new') }}" class="btn btn--primary">Add program</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

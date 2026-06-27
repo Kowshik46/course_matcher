@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Find your program — Course Advisor{% endblock %}
+
+{% block content %}
+<div class="intake-wrap">
+  <div class="intake-hero">
+    <h1 class="display-heading">Find the right program for you.</h1>
+    <p class="intake-sub">
+      Tell us about yourself and we'll match you to programs that fit your
+      budget, eligibility, and goals — with a transparent score breakdown.
+    </p>
+  </div>
+
+  <form method="post" action="{{ url_for('recommend') }}" class="intake-form" novalidate>
+
+    <!-- Row 1: Personal -->
+    <fieldset class="form-section">
+      <legend class="section-label">About you</legend>
+      <div class="field-row">
+        <div class="field">
+          <label for="age">Age</label>
+          <input type="number" id="age" name="age" min="16" max="65" placeholder="e.g. 28" />
+        </div>
+        <div class="field">
+          <label for="city">City</label>
+          <input type="text" id="city" name="city" placeholder="e.g. Bengaluru" />
+        </div>
+        <div class="field">
+          <label for="state">State</label>
+          <input type="text" id="state" name="state" placeholder="e.g. Karnataka" />
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Row 2: Program preferences -->
+    <fieldset class="form-section">
+      <legend class="section-label">Program preferences</legend>
+
+      <div class="field">
+        <span class="field-label">Level</span>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="level" value="bachelors" required />
+            Bachelors
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="level" value="masters" required />
+            Masters
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="level" value="certification" required />
+            Certification
+          </label>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field field--grow">
+          <label for="specialization">Field / specialization</label>
+          <input
+            type="text"
+            id="specialization"
+            name="specialization"
+            placeholder="e.g. Finance, Data Science, Marketing"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="field-label">Study mode</span>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="mode" value="online" />
+            Online
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="mode" value="offline" />
+            Offline / campus
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="mode" value="no_preference" checked />
+            No preference
+          </label>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Row 3: Financial & eligibility -->
+    <fieldset class="form-section">
+      <legend class="section-label">Budget &amp; eligibility</legend>
+      <div class="field-row">
+        <div class="field">
+          <label for="budget_inr">Total budget (₹)</label>
+          <input
+            type="number"
+            id="budget_inr"
+            name="budget_inr"
+            min="0"
+            step="1000"
+            placeholder="e.g. 300000"
+            required
+          />
+          <span class="field-hint">Enter in rupees, e.g. 300000 for ₹3 lakh</span>
+        </div>
+        <div class="field">
+          <label for="qualification_pct">Highest qualification %</label>
+          <input
+            type="number"
+            id="qualification_pct"
+            name="qualification_pct"
+            min="0"
+            max="100"
+            step="0.1"
+            placeholder="e.g. 45"
+            required
+          />
+          <span class="field-hint">Enter as 0–100, e.g. 45 for 45%</span>
+        </div>
+        <div class="field">
+          <label for="derived_income">Monthly income (₹) <span class="optional">(optional)</span></label>
+          <input
+            type="number"
+            id="derived_income"
+            name="derived_income"
+            min="0"
+            step="500"
+            placeholder="e.g. 50000"
+          />
+          <span class="field-hint">Captured for future use — not used in matching</span>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Row 4: Goals -->
+    <fieldset class="form-section">
+      <legend class="section-label">Why are you studying?</legend>
+      <p class="field-hint">Select all that apply — this shifts the ranking weights.</p>
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="reasons" value="Job Change" />
+          Job change
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="reasons" value="Salary Hike" />
+          Salary hike
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="reasons" value="Industry Shift" />
+          Industry shift
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="reasons" value="Move Abroad" />
+          Move abroad
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="reasons" value="Others" />
+          Others
+        </label>
+      </div>
+    </fieldset>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn--primary">Find my programs</button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

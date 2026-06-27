@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Course Advisor{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="{{ url_for('intake') }}" class="site-logo">
+        <span class="logo-display">Course Advisor</span>
+      </a>
+      <nav class="site-nav">
+        <a href="{{ url_for('intake') }}" class="nav-link">Find programs</a>
+        <a href="{{ url_for('admin_list') }}" class="nav-link nav-link--admin">Catalogue</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="footer-note">
+        <strong>Synthetic data warning:</strong> All fees, eligibility thresholds, placement
+        percentages, and quality scores in this POC are fabricated placeholders for engine
+        testing. University names are real; the numbers are not. Do not share these figures
+        with students or publish them. Replace with sourced, verified data before any
+        non-POC use.
+      </p>
+    </div>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
